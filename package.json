@@ -1,5 +1,5 @@
 {
-  "name": "matchly",
+  "name": "allowly",
   "version": "1.0.0",
   "main": "dist",
   "author": "Alexey Gorshkov",
@@ -24,7 +24,7 @@
     "test:verbose": "vitest --coverage"
   },
   "license": "ISC",
-  "description": "Matchly — lightweight string matcher with whitelist/blacklist rules, wildcards, and RegExp support. Perfect for validating inputs, configs, or ACLs with strict or tolerant rule handling.",
+  "description": "allowly — lightweight string matcher with whitelist/blacklist rules, wildcards, and RegExp support. Perfect for validating inputs, configs, or ACLs with strict or tolerant rule handling.",
   "resolutions": {
     "@types/express-serve-static-core": "*"
   }

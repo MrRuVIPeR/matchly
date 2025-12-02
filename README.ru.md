@@ -1,4 +1,4 @@
-# Matchly
+# allowly
 
 [en](README.md)
 [ru](README.ru.md)
@@ -28,7 +28,7 @@
 ## Установка
 
 ```bash
-npm install matchly
+npm install allowly
 ```
 
 ---
@@ -36,18 +36,18 @@ npm install matchly
 ## Использование
 
 ```ts
-import matchly from "matchly";
+import allowly from "allowly";
 
-matchly("admin", ["*"]);               // true
-matchly("admin", ["!admin"]);           // false
-matchly("superadmin", ["admin*"]);      // true
-matchly("user-42", ["/user-\\d+/i"]);  // true
+allowly("admin", ["*"]);               // true
+allowly("admin", ["!admin"]);           // false
+allowly("superadmin", ["admin*"]);      // true
+allowly("user-42", ["/user-\\d+/i"]);  // true
 ```
 
 ## Параметры
 
 ```js
-  matchly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false })
+  allowly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false })
 ```
 * `strict: boolean` - строгий режим
 * `caseSensitive: boolean` - режим с учётом регистра

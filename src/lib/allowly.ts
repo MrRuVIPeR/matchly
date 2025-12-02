@@ -17,7 +17,7 @@ export interface WhitelistOptions {
   strict: boolean;
   caseSensitive: boolean;
 }
-export default function matchly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false }) {
+export default function allowly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false }) {
   const opt = { strict: false, caseSensitive: false, ...options };
   let normalizedValue = value;
   if (!opt.caseSensitive) {

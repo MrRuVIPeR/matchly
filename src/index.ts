@@ -1,1 +1,1 @@
-export * from '@lib/matchly.js';
+export * from '@lib/allowly.js';

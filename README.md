@@ -27,13 +27,21 @@ npm install matchly
 ## Usage
 
 ```ts
-import isValueWhitelisted from "value-whitelist-matcher";
+import matchly from "matchly";
 
-isValueWhitelisted("admin", ["*"]);              // true
-isValueWhitelisted("admin", ["!admin"]);          // false
-isValueWhitelisted("superadmin", ["admin*"]);     // true
-isValueWhitelisted("user-42", ["/user-\\d+/i"]); // true
+matchly("admin", ["*"]);              // true
+matchly("admin", ["!admin"]);          // false
+matchly("superadmin", ["admin*"]);     // true
+matchly("user-42", ["/user-\\d+/i"]); // true
 ```
+
+## Options
+
+```js
+  matchly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false })
+```
+* `strict: boolean` - strict mode
+* `caseSensitive: boolean` - case sensitive mode
 
 ---
 

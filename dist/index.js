@@ -1,4 +1,24 @@
 // src/lib/allowly.ts
+function allowly(value, rules, options = { strict: true, caseSensitive: false }) {
+  const opt = { strict: false, caseSensitive: false, ...options };
+  let normalizedValue = value;
+  if (!opt.caseSensitive) {
+    normalizedValue = value.toLowerCase();
+  }
+  const parsed = rules.map((rule) => parseRule(rule, opt.strict)).filter((i) => i);
+  const denyRules = parsed.filter((rule) => rule.type === "deny");
+  const allowRules = parsed.filter((rule) => rule.type === "allow");
+  for (const rule of denyRules) {
+    if (matchRule(normalizedValue, rule)) return false;
+  }
+  for (const rule of allowRules) {
+    if (matchRule(normalizedValue, rule)) return true;
+  }
+  for (const rule of allowRules) {
+    if (matchRule(normalizedValue, rule)) return true;
+  }
+  return false;
+}
 function parseRule(rule, strict = true) {
   const original = rule;
   const unescaped = rule.replace(/\\(.)/g, "$1");
@@ -27,6 +47,28 @@ function parseRule(rule, strict = true) {
     raw: stripped
   };
 }
+function matchRule(value, rule) {
+  if (rule.regex) {
+    return rule.regex.test(value);
+  }
+  const pattern = rule.raw;
+  if (!pattern?.includes("*")) return value === pattern;
+  if (pattern === "*") return true;
+  if (pattern.startsWith("*") && pattern.endsWith("*")) {
+    return value.includes(pattern.slice(1, -1));
+  }
+  if (pattern.startsWith("*")) {
+    return value.endsWith(pattern.slice(1));
+  }
+  if (pattern.endsWith("*")) {
+    return value.startsWith(pattern.slice(0, -1));
+  }
+  return value === pattern;
+}
+
+// src/index.ts
+var index_default = allowly;
 export {
+  index_default as default,
   parseRule
 };

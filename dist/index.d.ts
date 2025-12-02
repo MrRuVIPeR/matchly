@@ -17,6 +17,7 @@ interface WhitelistOptions {
     strict: boolean;
     caseSensitive: boolean;
 }
+declare function allowly(value: string, rules: string[], options?: Partial<WhitelistOptions>): boolean;
 interface Rule {
     type: string;
     original: string;
@@ -25,4 +26,4 @@ interface Rule {
 }
 declare function parseRule(rule: string, strict?: boolean): Rule | null;
 
-export { type WhitelistOptions, parseRule };
+export { type WhitelistOptions, allowly as default, parseRule };

@@ -27,8 +27,7 @@
     "dev": "tsc --noEmit && npm run lint && tsx watch src/index.ts",
     "dev:watch": "tsx watch src/index.ts --inspect",
     "test": "vitest --silent --coverage",
-    "test:verbose": "vitest --coverage",
-    "publish": "npx semantic-release --no-ci"
+    "test:verbose": "vitest --coverage"
   },
   "author": "",
   "license": "ISC",

@@ -28,7 +28,7 @@
 ## Установка
 
 ```bash
-npm install value-whitelist-matcher
+npm install matchly
 ```
 
 ---

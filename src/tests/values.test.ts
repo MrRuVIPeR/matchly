@@ -43,7 +43,7 @@ describe('isValueWhitelisted — negative cases', () => {
     assert.isFalse(allowly('value', []));
   });
   it('empty string value does not match anything', () => {
-    assert.isFalse(allowly('', ['value', '*value']));
+    assert.isFalse(allowly('', ['value', '*value'], { strict: false }));
   });
 
   it('value not in array', () => {

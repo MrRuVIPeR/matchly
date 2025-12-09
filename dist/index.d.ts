@@ -24,6 +24,6 @@ interface Rule {
     regex?: RegExp;
     raw?: string;
 }
-declare function parseRule(rule: string, strict?: boolean): Rule | null;
+declare function parseRule(rule: string, strict?: boolean, caseSensitive?: boolean): Rule | null;
 
 export { type WhitelistOptions, allowly as default, parseRule };

@@ -2,6 +2,8 @@
 function allowly(value, rules, options = { strict: true, caseSensitive: false }) {
   const opt = { strict: false, caseSensitive: false, ...options };
   let normalizedValue = value;
+  if (!normalizedValue && opt.strict) throw new Error("Value is required");
+  if (!normalizedValue) return false;
   if (!opt.caseSensitive) {
     normalizedValue = value.toLowerCase();
   }
@@ -19,9 +21,10 @@ function allowly(value, rules, options = { strict: true, caseSensitive: false })
   }
   return false;
 }
-function parseRule(rule, strict = true) {
+function parseRule(rule, strict = true, caseSensitive = false) {
   const original = rule;
-  const unescaped = rule.replace(/\\(.)/g, "$1");
+  let unescaped = rule.replace(/\\(.)/g, "$1");
+  if (!caseSensitive) unescaped = unescaped.toLowerCase();
   const regexMatch = /^\/(.+)\/([a-z]*)$/i.exec(unescaped);
   if (regexMatch) {
     const [, body, flags] = regexMatch;
@@ -67,6 +70,7 @@ function matchRule(value, rule) {
 }
 
 // src/index.ts
+var result = allowly("NG", ["CA", "CC", "NG"]);
 var index_default = allowly;
 export {
   index_default as default,

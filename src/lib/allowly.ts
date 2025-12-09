@@ -20,6 +20,8 @@ export interface WhitelistOptions {
 export default function allowly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false }) {
   const opt = { strict: false, caseSensitive: false, ...options };
   let normalizedValue = value;
+  if (!normalizedValue && opt.strict) throw new Error("Value is required");
+  if (!normalizedValue) return false;
   if (!opt.caseSensitive) {
     normalizedValue = value.toLowerCase();
   }
@@ -52,9 +54,10 @@ interface Rule {
   regex?: RegExp;
   raw?: string;
 }
-export function parseRule(rule: string, strict: boolean = true): Rule | null {
+export function parseRule(rule: string, strict: boolean = true, caseSensitive: boolean = false): Rule | null {
   const original = rule;
-  const unescaped = rule.replace(/\\(.)/g, '$1');
+  let unescaped = rule.replace(/\\(.)/g, '$1');
+  if (!caseSensitive) unescaped = unescaped.toLowerCase();
 
   // Regexp rule
   const regexMatch = /^\/(.+)\/([a-z]*)$/i.exec(unescaped);

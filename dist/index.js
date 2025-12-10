@@ -7,7 +7,7 @@ function allowly(value, rules, options = { strict: true, caseSensitive: false })
   if (!opt.caseSensitive) {
     normalizedValue = value.toLowerCase();
   }
-  const parsed = rules.map((rule) => parseRule(rule, opt.strict)).filter((i) => i);
+  const parsed = rules.map((rule) => parseRule(rule, opt.strict, opt.caseSensitive)).filter((i) => i);
   const denyRules = parsed.filter((rule) => rule.type === "deny");
   const allowRules = parsed.filter((rule) => rule.type === "allow");
   for (const rule of denyRules) {
@@ -70,7 +70,6 @@ function matchRule(value, rule) {
 }
 
 // src/index.ts
-var result = allowly("NG", ["CA", "CC", "NG"]);
 var index_default = allowly;
 export {
   index_default as default,

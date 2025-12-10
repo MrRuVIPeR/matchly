@@ -26,7 +26,7 @@ export default function allowly(value: string, rules: string[], options: Partial
     normalizedValue = value.toLowerCase();
   }
 
-  const parsed = rules.map((rule) => parseRule(rule, opt.strict)).filter((i) => i) as Rule[];
+  const parsed = rules.map((rule) => parseRule(rule, opt.strict, opt.caseSensitive)).filter((i) => i) as Rule[];
   const denyRules = parsed.filter((rule) => rule.type === 'deny');
   const allowRules = parsed.filter((rule) => rule.type === 'allow');
 

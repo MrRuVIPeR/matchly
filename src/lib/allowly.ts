@@ -1,120 +1,145 @@
 /**
- * Проверяет, является ли значение в списке разрешённых.
- * Понимает следующие правила:
- * value - значение для проверки
- * * - все значения в списке разрешённых
- * !value - не в списке разрешённых
+ * Проверяет, является ли значение разрешённым.
  *
- * Значения проверяются в три этапа:
- * 1. Исключающие значения. Например, ["*", "!value"] - все значения кроме "value"
- * 2. Полное совпадение. Например, ["value"] - только "value"
- * 3. Частичное совпадение. Например, ["*value"] - любое значение, заканчивающееся на "value"
- * 4. Частичное совпадение. Например, ["*value*"] - любое значение, которое содержит "value"
- * 5. Частичное совпадение. Например, ["value*"] - любое значение, начинающееся на "value"
+ * Поддерживает правила:
  *
+ * value      - точное совпадение
+ * *          - любое значение
+ * *value     - значение заканчивается на value
+ * value*     - значение начинается с value
+ * *value*    - значение содержит value
+ * !value     - исключение (запрещающее правило)
+ * /regexp/i  - регулярное выражение
+ *
+ * Приоритет:
+ * 1. Исключающие правила
+ * 2. Разрешающие правила
  */
 export interface WhitelistOptions {
   strict: boolean;
   caseSensitive: boolean;
 }
-export default function allowly(value: string, rules: string[], options: Partial<WhitelistOptions> = { strict: true, caseSensitive: false }) {
-  const opt = { strict: false, caseSensitive: false, ...options };
-  let normalizedValue = value;
-  if (!normalizedValue && opt.strict) throw new Error("Value is required");
-  if (!normalizedValue) return false;
-  if (!opt.caseSensitive) {
-    normalizedValue = value.toLowerCase();
+
+export default function allowly(value: string, rules: string[], options: Partial<WhitelistOptions> = {}): boolean {
+  const opt: WhitelistOptions = {
+    strict: true,
+    caseSensitive: false,
+    ...options,
+  };
+
+  if (!value && opt.strict) {
+    throw new Error('Value is required');
   }
 
-  const parsed = rules.map((rule) => parseRule(rule, opt.strict, opt.caseSensitive)).filter((i) => i) as Rule[];
-  const denyRules = parsed.filter((rule) => rule.type === 'deny');
-  const allowRules = parsed.filter((rule) => rule.type === 'allow');
-
-  // Check deny rules
-  for (const rule of denyRules) {
-    if (matchRule(normalizedValue, rule)) return false;
+  if (!value) {
+    return false;
   }
 
-  // Check allowRules
-  for (const rule of allowRules) {
-    if (matchRule(normalizedValue, rule)) return true;
+  const normalizedValue = normalize(value, opt.caseSensitive);
+
+  const parsedRules = rules.map((rule) => parseRule(rule, opt)).filter(Boolean) as Rule[];
+
+  const denyRules = parsedRules.filter((rule) => rule.type === 'deny');
+
+  const allowRules = parsedRules.filter((rule) => rule.type === 'allow');
+
+  // deny всегда сильнее allow
+  if (denyRules.some((rule) => matchRule(normalizedValue, rule))) {
+    return false;
   }
 
-  // Check other rules
-  for (const rule of allowRules) {
-    if (matchRule(normalizedValue, rule)) return true;
-  }
-
-  return false;
+  return allowRules.some((rule) => matchRule(normalizedValue, rule));
 }
 
 interface Rule {
-  type: string;
+  type: 'allow' | 'deny';
   original: string;
-  regex?: RegExp;
   raw?: string;
+  regex?: RegExp;
 }
-export function parseRule(rule: string, strict: boolean = true, caseSensitive: boolean = false): Rule | null {
-  const original = rule;
-  let unescaped = rule.replace(/\\(.)/g, '$1');
-  if (!caseSensitive) unescaped = unescaped.toLowerCase();
 
-  // Regexp rule
-  const regexMatch = /^\/(.+)\/([a-z]*)$/i.exec(unescaped);
+function normalize(value: string, caseSensitive: boolean): string {
+  return caseSensitive ? value : value.toLowerCase();
+}
+
+export function parseRule(rule: string, options: WhitelistOptions): Rule | null {
+  const original = rule;
+
+  let normalizedRule = rule.replace(/\\(.)/g, '$1');
+
+  if (!options.caseSensitive) {
+    normalizedRule = normalizedRule.toLowerCase();
+  }
+
+  // RegExp rule
+  const regexMatch = /^\/(.+)\/([a-z]*)$/i.exec(normalizedRule);
+
   if (regexMatch) {
     const [, body, flags] = regexMatch;
+
     try {
-      const regex = new RegExp(body, flags || 'i');
       return {
         type: 'allow',
         original,
-        regex,
-        raw: unescaped,
+        regex: new RegExp(body, flags),
       };
-    } catch (e) {
-      if (strict) throw e;
-      // ignore rule
-      console.error(`Invalid RegExp rule will be ignored: ${body}`);
+    } catch (error) {
+      if (options.strict) {
+        throw error;
+      }
+
+      console.error(`Invalid RegExp rule ignored: ${body}`);
+
       return null;
     }
   }
 
-  const isNegotiation = unescaped.startsWith('!');
-  const stripped = unescaped.slice(isNegotiation ? 1 : 0);
+  const deny = normalizedRule.startsWith('!');
+
+  const raw = deny ? normalizedRule.slice(1) : normalizedRule;
 
   return {
-    type: isNegotiation ? 'deny' : 'allow',
+    type: deny ? 'deny' : 'allow',
     original,
-    raw: stripped,
+    raw,
   };
 }
 
 function matchRule(value: string, rule: Rule): boolean {
-  // Regexp rule
   if (rule.regex) {
     return rule.regex.test(value);
   }
 
   const pattern = rule.raw;
 
-  // Exact match
-  if (!pattern?.includes('*')) return value === pattern;
+  if (!pattern) {
+    return false;
+  }
 
-  // Wildcard rule match
-  if (pattern === '*') return true;
+  // Все значения
+  if (pattern === '*') {
+    return true;
+  }
 
-  // Partial match
+  // Точное совпадение
+  if (!pattern.includes('*')) {
+    return value === pattern;
+  }
+
+  // *value*
   if (pattern.startsWith('*') && pattern.endsWith('*')) {
     return value.includes(pattern.slice(1, -1));
   }
 
+  // *value
   if (pattern.startsWith('*')) {
     return value.endsWith(pattern.slice(1));
   }
 
+  // value*
   if (pattern.endsWith('*')) {
     return value.startsWith(pattern.slice(0, -1));
   }
 
-  return value === pattern;
+  return false;
 }

@@ -109,3 +109,77 @@ describe('isValueWhitelisted — regexp rules', () => {
     });
   });
 });
+
+describe('isValueWhitelisted — multiple rules interaction', () => {
+  it('allows when one of multiple allow rules matches', () => {
+    assert.isTrue(allowly('value', ['foo', 'bar', 'value']));
+  });
+
+  it('denies when any deny rule matches among multiple rules', () => {
+    assert.isFalse(allowly('value', ['foo', 'bar', '!value']));
+  });
+
+  it('deny rule overrides matching allow rule', () => {
+    assert.isFalse(allowly('value', ['value', '!value']));
+  });
+
+  it('deny rule overrides wildcard allow', () => {
+    assert.isFalse(allowly('value', ['*', '!value']));
+  });
+
+  it('wildcard allow works with unrelated deny rule', () => {
+    assert.isTrue(allowly('value', ['*', '!other']));
+  });
+
+  it('multiple deny rules deny when any one matches', () => {
+    assert.isFalse(allowly('value', ['*', '!foo', '!value', '!bar']));
+  });
+
+  it('multiple deny rules allow when none match', () => {
+    assert.isTrue(allowly('value', ['*', '!foo', '!bar', '!baz']));
+  });
+
+  it('multiple wildcard allow rules do not affect result', () => {
+    assert.isTrue(allowly('value', ['foo*', '*value', '*']));
+  });
+
+  it('multiple partial allow rules match any rule', () => {
+    assert.isTrue(allowly('value', ['foo*', '*bar', '*value*']));
+  });
+
+  it('deny partial rule overrides partial allow rule', () => {
+    assert.isFalse(allowly('value', ['*val*', '!value*']));
+  });
+
+  it('case insensitive matching works across multiple rules', () => {
+    assert.isFalse(allowly('VALUE', ['*', '!value']));
+  });
+
+  it('case sensitive deny does not block different casing', () => {
+    assert.isTrue(
+      allowly('VALUE', ['*', '!value'], {
+        caseSensitive: true,
+      })
+    );
+  });
+
+  it('mixed exact and wildcard rules resolve correctly', () => {
+    assert.isFalse(allowly('admin-user', ['user', 'admin-*', '!admin-user']));
+  });
+
+  it('multiple values with escaped wildcard stay literal', () => {
+    assert.isTrue(allowly('foo*bar', ['foo\\*bar', 'other']));
+  });
+
+  it('empty rules mixed with valid rules do not break matching', () => {
+    assert.isTrue(allowly('value', ['', 'value', '!invalid']));
+  });
+});
+
+it('only deny rules allow values that are not denied', () => {
+  assert.isFalse(allowly('user', ['!admin']));
+});
+
+it('only deny rules deny matched value', () => {
+  assert.isFalse(allowly('admin', ['!admin']));
+});
